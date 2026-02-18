@@ -1,185 +1,276 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart3,
-  Users,
-  ShoppingCart,
-  DollarSign,
+  Film,
+  RefreshCw,
+  Sparkles,
   TrendingUp,
-  TrendingDown,
-  Activity,
-  Eye,
+  Filter,
+  ArrowDownUp,
+  Play,
+  Circle,
+  Triangle,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
 } from "lucide-react";
 
-export default async function DashboardPage() {
-  const stats = [
-    {
-      title: "Total Revenue",
-      value: "Rp 45,231,000",
-      change: "+20.1%",
-      trend: "up",
-      icon: DollarSign,
-      color: "text-green-600",
-    },
-    {
-      title: "Total Users",
-      value: "2,350",
-      change: "+180",
-      trend: "up",
-      icon: Users,
-      color: "text-blue-600",
-    },
-    {
-      title: "Total Orders",
-      value: "12,234",
-      change: "+19%",
-      trend: "up",
-      icon: ShoppingCart,
-      color: "text-purple-600",
-    },
-    {
-      title: "Conversion Rate",
-      value: "3.2%",
-      change: "-0.4%",
-      trend: "down",
-      icon: Activity,
-      color: "text-orange-600",
-    },
-  ];
+const stats = [
+  {
+    title: "Total Clips",
+    value: "1,248",
+    subtitle: "↗12% vs last month",
+    subtitleColor: "text-emerald-400",
+    icon: Film,
+    iconColor: "text-primary",
+    iconBg: "bg-primary/15",
+  },
+  {
+    title: "Processing",
+    value: "3",
+    subtitle: "Est. completion: 5 mins",
+    subtitleColor: "text-muted-foreground",
+    icon: RefreshCw,
+    iconColor: "text-purple-400",
+    iconBg: "bg-purple-400/15",
+  },
+  {
+    title: "Credits Left",
+    value: "450",
+    subtitle: "progress",
+    subtitleColor: "",
+    icon: Zap,
+    iconColor: "text-emerald-400",
+    iconBg: "bg-emerald-400/15",
+  },
+  {
+    title: "Avg. Engagement",
+    value: "8.4%",
+    subtitle: "↗2.1% vs last month",
+    subtitleColor: "text-emerald-400",
+    icon: Sparkles,
+    iconColor: "text-purple-400",
+    iconBg: "bg-purple-400/15",
+  },
+];
 
-  const recentActivities = [
-    { id: 1, user: "John Doe", action: "membuat pesanan baru", time: "2 menit yang lalu" },
-    { id: 2, user: "Jane Smith", action: "mengupdate profil", time: "5 menit yang lalu" },
-    { id: 3, user: "Bob Johnson", action: "menyelesaikan pembayaran", time: "10 menit yang lalu" },
-    {
-      id: 4,
-      user: "Alice Brown",
-      action: "mendaftar sebagai user baru",
-      time: "15 menit yang lalu",
-    },
-    { id: 5, user: "Charlie Wilson", action: "mengajukan refund", time: "20 menit yang lalu" },
-  ];
+type ProjectStatus = "Ready" | "Processing" | "Failed";
 
+const projects = [
+  {
+    name: "Tech Talk Episode 44",
+    category: "Podcast Series",
+    duration: "02:30",
+    status: "Ready" as ProjectStatus,
+    date: "Oct 24, 2023",
+    thumbnailIcon: Play,
+    thumbnailColor: "bg-purple-500/20 text-purple-400",
+  },
+  {
+    name: "Product Demo V2",
+    category: "Marketing Clips",
+    duration: "05:15",
+    status: "Processing" as ProjectStatus,
+    date: "Oct 24, 2023",
+    thumbnailIcon: Circle,
+    thumbnailColor: "bg-primary/20 text-primary",
+  },
+  {
+    name: "Stream Highlight #401",
+    category: "Twitch Exports",
+    duration: "00:45",
+    status: "Failed" as ProjectStatus,
+    date: "Oct 23, 2023",
+    thumbnailIcon: Triangle,
+    thumbnailColor: "bg-red-500/20 text-red-400",
+  },
+  {
+    name: "CEO Interview - Q3",
+    category: "Internal Comms",
+    duration: "12:00",
+    status: "Ready" as ProjectStatus,
+    date: "Oct 22, 2023",
+    thumbnailIcon: Play,
+    thumbnailColor: "bg-muted text-muted-foreground",
+  },
+  {
+    name: "Travel Vlog: Japan",
+    category: "YouTube Shorts",
+    duration: "00:58",
+    status: "Ready" as ProjectStatus,
+    date: "Oct 21, 2023",
+    thumbnailIcon: Play,
+    thumbnailColor: "bg-emerald-500/20 text-emerald-400",
+  },
+];
+
+const statusConfig: Record<
+  ProjectStatus,
+  { label: string; dotColor: string; bgColor: string; textColor: string }
+> = {
+  Ready: {
+    label: "Ready",
+    dotColor: "bg-emerald-400",
+    bgColor: "bg-emerald-400/10",
+    textColor: "text-emerald-400",
+  },
+  Processing: {
+    label: "Processing",
+    dotColor: "bg-amber-400",
+    bgColor: "bg-amber-400/10",
+    textColor: "text-amber-400",
+  },
+  Failed: {
+    label: "Failed",
+    dotColor: "bg-red-400",
+    bgColor: "bg-red-400/10",
+    textColor: "text-red-400",
+  },
+};
+
+export default function DashboardPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Selamat datang kembali! Berikut ringkasan aktivitas hari ini.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <Button>
-            <Eye className="h-4 w-4 mr-2" />
-            Lihat Laporan
-          </Button>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <div className="flex items-center mt-1">
-                {stat.trend === "up" ? (
-                  <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-                )}
-                <span
-                  className={`text-sm ${stat.trend === "up" ? "text-green-600" : "text-red-600"}`}
-                >
-                  {stat.change}
-                </span>
-                <span className="text-sm text-muted-foreground ml-1">dari bulan lalu</span>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.title}
+            className="rounded-xl bg-card border border-border p-5 flex items-start justify-between"
+          >
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">{stat.title}</p>
+              <p className="text-3xl font-bold text-foreground tracking-tight">{stat.value}</p>
+              {stat.subtitle === "progress" ? (
+                <div className="w-full">
+                  <div className="h-1.5 w-32 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-emerald-400" style={{ width: "60%" }} />
+                  </div>
+                </div>
+              ) : (
+                <p className={`text-xs ${stat.subtitleColor}`}>{stat.subtitle}</p>
+              )}
+            </div>
+            <div
+              className={`w-10 h-10 rounded-lg ${stat.iconBg} flex items-center justify-center shrink-0`}
+            >
+              <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart Placeholder */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
-            <CardDescription>Grafik pendapatan dalam 12 bulan terakhir</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 bg-muted rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Chart akan ditampilkan di sini</p>
-                <p className="text-sm text-muted-foreground">
-                  Integrasi dengan library chart seperti Recharts
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activities */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Aktivitas Terbaru</CardTitle>
-            <CardDescription>Aktivitas pengguna dalam 30 menit terakhir</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2 shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">
-                      <span className="font-medium">{activity.user}</span> {activity.action}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Aksi cepat yang sering digunakan</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col bg-transparent">
-              <Users className="h-6 w-6 mb-2" />
-              Kelola User
+      {/* Recent Projects */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-foreground">Recent Projects</h2>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-1.5 bg-transparent">
+              <Filter className="w-3.5 h-3.5" />
+              Filter
             </Button>
-            <Button variant="outline" className="h-20 flex-col bg-transparent">
-              <ShoppingCart className="h-6 w-6 mb-2" />
-              Lihat Pesanan
-            </Button>
-            <Button variant="outline" className="h-20 flex-col bg-transparent">
-              <BarChart3 className="h-6 w-6 mb-2" />
-              Analytics
-            </Button>
-            <Button variant="outline" className="h-20 flex-col bg-transparent">
-              <Activity className="h-6 w-6 mb-2" />
-              Monitoring
+            <Button variant="outline" size="sm" className="gap-1.5 bg-transparent">
+              <ArrowDownUp className="w-3.5 h-3.5" />
+              Sort
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Table */}
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          {/* Table Header */}
+          <div className="grid grid-cols-[80px_1fr_100px_120px_140px_60px] items-center px-5 py-3 border-b border-border">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Thumbnail
+            </span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Project Name
+            </span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Duration
+            </span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Status
+            </span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Date Created
+            </span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">
+              Actions
+            </span>
+          </div>
+
+          {/* Table Rows */}
+          {projects.map((project) => {
+            const status = statusConfig[project.status];
+            return (
+              <div
+                key={project.name}
+                className="grid grid-cols-[80px_1fr_100px_120px_140px_60px] items-center px-5 py-4 border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors"
+              >
+                {/* Thumbnail */}
+                <div>
+                  <div
+                    className={`w-12 h-12 rounded-xl ${project.thumbnailColor} flex items-center justify-center`}
+                  >
+                    <project.thumbnailIcon className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* Project Name */}
+                <div>
+                  <p className="text-sm font-medium text-foreground">{project.name}</p>
+                  <p className="text-xs text-muted-foreground">{project.category}</p>
+                </div>
+
+                {/* Duration */}
+                <p className="text-sm text-muted-foreground font-mono">{project.duration}</p>
+
+                {/* Status */}
+                <div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor}`} />
+                    {status.label}
+                  </span>
+                </div>
+
+                {/* Date */}
+                <p className="text-sm text-muted-foreground">{project.date}</p>
+
+                {/* Actions */}
+                <div className="flex justify-end">
+                  {project.status === "Failed" ? (
+                    <button className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+            <p className="text-sm text-muted-foreground">Showing 1-5 of 124 projects</p>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="gap-1 bg-transparent">
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1 bg-transparent">
+                Next
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

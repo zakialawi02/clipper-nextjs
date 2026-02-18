@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import NextTopLoader from "nextjs-toploader";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextAuth Starter",
-  description: "Public marketing site with protected admin dashboard",
-  keywords: ["nextauth", "starter", "nextjs", "typescript", "tailwindcss"],
+  title: "Clipper",
+  description: "Clipper is a tool for clipping videos",
+  keywords: ["clipper", "nextjs", "typescript", "tailwindcss"],
   icons: {
     icon: [
       { url: "/assets/img/favicon.ico" },
@@ -45,6 +46,7 @@ export default function RootLayout({
         >
           <NextTopLoader showSpinner={false} />
           <Providers>{children}</Providers>
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>

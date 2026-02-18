@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.AUTH_SECRET,
   providers,
   pages: {
-    signIn: "/auth",
+    signIn: "/auth/signin",
   },
   session: {
     strategy: "database",

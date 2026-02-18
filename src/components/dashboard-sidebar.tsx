@@ -17,11 +17,10 @@ import {
   BarChart3,
   Home,
   LayoutDashboard,
-  ReceiptText,
   Settings,
   HelpCircle,
-  ArrowLeftRight,
   Clapperboard,
+  Folder,
 } from "lucide-react";
 
 const menuItems = [
@@ -36,19 +35,9 @@ const menuItems = [
     icon: Clapperboard,
   },
   {
-    title: "Invoice",
-    url: "/dashboard/invoice",
-    icon: ReceiptText,
-  },
-  {
-    title: "Transactions",
-    url: "/dashboard/transactions",
-    icon: ArrowLeftRight,
-  },
-  {
-    title: "Report",
-    url: "/dashboard/report",
-    icon: BarChart3,
+    title: "All Project",
+    url: "/dashboard/projects",
+    icon: Folder,
   },
 ];
 
