@@ -44,7 +44,7 @@ export const HeaderPublic = async () => {
           <div className="flex items-center gap-3">
             <ModeToggle />
             <Link
-              href={session ? "/dashboard" : "/auth/signin"}
+              href={session ? "/app" : "/auth/signin"}
               className="hidden items-center justify-center rounded-lg border border-border bg-transparent px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-accent sm:inline-flex"
             >
               {session ? "Dashboard" : "Sign In"}

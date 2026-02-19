@@ -26,17 +26,17 @@ import {
 const menuItems = [
   {
     title: "Dashboard",
-    url: "/dashboard",
+    url: "/app",
     icon: LayoutDashboard,
   },
   {
     title: "Clip",
-    url: "/dashboard/clip",
+    url: "/app/clip",
     icon: Clapperboard,
   },
   {
     title: "All Project",
-    url: "/dashboard/projects",
+    url: "/app/projects",
     icon: Folder,
   },
 ];
@@ -44,12 +44,12 @@ const menuItems = [
 const referenceItems = [
   {
     title: "Settings",
-    url: "/dashboard/settings",
+    url: "/app/settings",
     icon: Settings,
   },
   {
     title: "Help & Support",
-    url: "/dashboard/help-and-support",
+    url: "/app/help-and-support",
     icon: HelpCircle,
   },
 ];
@@ -63,7 +63,7 @@ export function DashboardSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href="/app">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <BarChart3 className="size-4" />
                 </div>

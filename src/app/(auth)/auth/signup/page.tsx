@@ -9,7 +9,7 @@ export default async function SignUpPage() {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    return redirect("/dashboard");
+    return redirect("/app");
   }
 
   return (

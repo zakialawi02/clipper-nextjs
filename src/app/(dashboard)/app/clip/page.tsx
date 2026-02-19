@@ -126,7 +126,7 @@ export default function ClipPage() {
           {recentProjects.map((project) => (
             <Link
               key={project.name}
-              href="/dashboard/clip/editor"
+              href="/app/clip/editor"
               className="group w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/40 transition-all text-left hover:shadow-md hover:shadow-primary/5"
             >
               <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center shrink-0">
