@@ -34,11 +34,6 @@ const menuItems = [
     url: "/app/clip",
     icon: Clapperboard,
   },
-  {
-    title: "All Project",
-    url: "/app/projects",
-    icon: Folder,
-  },
 ];
 
 const referenceItems = [

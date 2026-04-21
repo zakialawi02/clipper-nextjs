@@ -1,0 +1,117 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clipper-postgres
+    environment:
+      POSTGRES_DB: clipper_db
+      POSTGRES_USER: clipper_user
+      POSTGRES_PASSWORD: clipper_pass
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clipper_user -d clipper_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clipper-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: clipper-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clipper-network
+
+  bullmq-redis:
+    image: redis:7-alpine
+    container_name: clipper-bullmq
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - bullmq_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clipper-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clipper-worker
+    command: npm run worker
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - DATABASE_URL=postgresql://clipper_user:clipper_pass@postgres:5432/clipper_db
+      - REDIS_URL=redis://redis:6379
+      - BULLMQ_REDIS_URL=redis://bullmq-redis:6379
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      bullmq-redis:
+        condition: service_healthy
+    networks:
+      - clipper-network
+
+  # Optional: Adminer for database management
+  adminer:
+    image: adminer:latest
+    container_name: clipper-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - clipper-network
+    profiles:
+      - tools
+
+  # Optional: Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: clipper-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - clipper-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  bullmq_data:
+    driver: local
+
+networks:
+  clipper-network:
+    driver: bridge
