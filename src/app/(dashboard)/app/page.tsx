@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -14,6 +15,7 @@ import {
   Link2,
   MoreHorizontal,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -56,8 +58,19 @@ const projects = [
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [autoSave, setAutoSave] = useState(true);
   const [autoImport, setAutoImport] = useState(false);
+  const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClip = () => {
+    if (!url.trim()) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      router.push(`/workflow?url=${encodeURIComponent(url)}`);
+    }, 1500);
+  };
 
   return (
     <div className="space-y-12">
@@ -109,6 +122,8 @@ export default function DashboardPage() {
                     <input
                       type="text"
                       placeholder="Paste YouTube, Twitch, or Vimeo link..."
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
                       className="w-full h-14 bg-muted/20 border border-border/50 rounded-xl pl-14 pr-6 text-[14px] font-semibold text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 focus:bg-muted/30 transition-all duration-300"
                     />
                     {/* Glowing status dot */}
@@ -119,16 +134,29 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  <Button className="group/btn relative h-14 w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white font-black text-base rounded-xl transition-all duration-500 overflow-hidden shadow-[0_10px_30px_-10px_rgba(99,102,241,0.4)]">
+                  <Button 
+                    onClick={handleClip}
+                    disabled={isLoading || !url.trim()}
+                    className="group/btn relative h-14 w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white font-black text-base rounded-xl transition-all duration-500 overflow-hidden shadow-[0_10px_30px_-10px_rgba(99,102,241,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" />
                     <span className="relative flex items-center justify-center gap-2">
-                      Get Clips in 1 Click
-                      <motion.div
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                      </motion.div>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Get Clips in 1 Click
+                          <motion.div
+                            animate={{ x: [0, 4, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </motion.div>
+                        </>
+                      )}
                     </span>
                   </Button>
 
