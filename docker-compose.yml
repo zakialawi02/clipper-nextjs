@@ -62,10 +62,12 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
+      - NODE_ENV=development
       - DATABASE_URL=postgresql://clipper_user:clipper_pass@postgres:5432/clipper_db
       - REDIS_URL=redis://redis:6379
       - BULLMQ_REDIS_URL=redis://bullmq-redis:6379
-      - NODE_ENV=development
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy

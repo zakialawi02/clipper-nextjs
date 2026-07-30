@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { promises as fs } from "node:fs";
+import path from "node:path";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -44,60 +45,47 @@ export async function downloadYouTubeVideo(youtubeUrl: string, outputTemplate: s
 export async function downloadYouTubeSubtitles(
   youtubeUrl: string,
   outputPath: string,
-  lang = "en",
+  preferredLang = "en",
 ): Promise<string | null> {
-  try {
-    // Try auto-generated subtitles first, then manual subtitles
-    await execFileAsync(
-      "yt-dlp",
-      [
-        "--write-auto-subs",
-        "--sub-langs",
-        lang,
-        "--skip-download",
-        "--convert-subs",
-        "srt",
-        "-o",
-        outputPath,
-        youtubeUrl,
-      ],
-      {
-        timeout: 60_000,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-    );
-
-    const srtPath = `${outputPath}.${lang}.srt`;
-    await fs.stat(srtPath); // Ensure file exists
-    return srtPath;
-  } catch {
+  // Try 1: Auto-generated subtitles in preferred language
+  const tryLang = async (lang: string, auto: boolean): Promise<string | null> => {
+    const args = [
+      auto ? "--write-auto-subs" : "--write-subs",
+      "--sub-langs",
+      lang,
+      "--skip-download",
+      "--convert-subs",
+      "srt",
+      "-o",
+      outputPath,
+      youtubeUrl,
+    ];
     try {
-      // Fallback: try manual subtitles
-      await execFileAsync(
-        "yt-dlp",
-        [
-          "--write-subs",
-          "--sub-langs",
-          lang,
-          "--skip-download",
-          "--convert-subs",
-          "srt",
-          "-o",
-          outputPath,
-          youtubeUrl,
-        ],
-        {
-          timeout: 60_000,
-          maxBuffer: 10 * 1024 * 1024,
-        },
-      );
+      await execFileAsync("yt-dlp", args, { timeout: 60_000, maxBuffer: 10 * 1024 * 1024 });
       const srtPath = `${outputPath}.${lang}.srt`;
       await fs.stat(srtPath);
       return srtPath;
     } catch {
-      return null; // No subtitles available
+      return null;
     }
+  };
+
+  // Try 2: Auto-generated in preferred language
+  let srt = await tryLang(preferredLang, true);
+  if (srt) return srt;
+
+  // Try 3: Manual subtitles in preferred language
+  srt = await tryLang(preferredLang, false);
+  if (srt) return srt;
+
+  // Try 4: Fallback — try common languages (id, ms, zh, ja, ko, ar, es, fr, de, pt, ru)
+  const fallbackLangs = ["id", "ms", "zh", "ja", "ko", "ar", "es", "fr", "de", "pt", "ru"];
+  for (const lang of fallbackLangs) {
+    srt = await tryLang(lang, true);
+    if (srt) return srt;
   }
+
+  return null; // No subtitles available at all
 }
 
 export type SrtSegment = {

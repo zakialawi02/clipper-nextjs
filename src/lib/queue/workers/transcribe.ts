@@ -36,8 +36,12 @@ export function createTranscribeWorker() {
       await job.updateProgress(50);
 
       if (!srtPath) {
-        throw new Error("No English subtitles available for this video. Try a different video.");
+        throw new Error("No subtitles available for this video. Try a different video.");
       }
+
+      // Detect language from filename: outputPath.ll.srt
+      const langMatch = srtPath.match(/\.([a-z]{2}(?:-[a-zA-Z]+)?)\.srt$/);
+      const detectedLang = langMatch?.[1] ?? "en";
 
       const srtContent = await fs.readFile(srtPath, "utf-8");
       const { segments, raw } = parseSrt(srtContent);
@@ -48,12 +52,12 @@ export function createTranscribeWorker() {
         where: { projectId },
         create: {
           projectId,
-          language: "en",
+          language: detectedLang,
           segments: segments,
           raw,
         },
         update: {
-          language: "en",
+          language: detectedLang,
           segments: segments,
           raw,
         },

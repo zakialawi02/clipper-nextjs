@@ -1,12 +1,17 @@
 FROM node:22-bookworm-slim AS base
 
-# Install FFmpeg and yt-dlp only
+# Install FFmpeg + Python + latest yt-dlp
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
     ffmpeg \
-    yt-dlp \
+    python3 \
+    python3-pip \
+  && python3 -m pip install --break-system-packages --no-cache-dir yt-dlp \
   && rm -rf /var/lib/apt/lists/*
+
+# Create temp directory for processing
+RUN mkdir -p /tmp/ai-clipper
 
 WORKDIR /app
 
