@@ -69,9 +69,8 @@ export const FFmpegUtils = {
   generateThumbnail(videoPath: string, outputPath: string): Promise<string> {
     return new Promise((resolve, reject) => {
       ffmpeg(videoPath)
-        .seekInput("00:00:01")
+        .seekInput(0.5)
         .frames(1)
-        .videoFilter("scale=640:360")
         .output(outputPath)
         .on("end", () => resolve(outputPath))
         .on("error", reject)

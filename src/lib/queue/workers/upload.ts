@@ -47,7 +47,7 @@ export function createUploadWorker() {
       await job.updateProgress(70);
 
       const signedUrl = await R2Storage.getSignedUrl(clipKey, 86400);
-      const thumbUrl = R2Storage.getPublicUrl(thumbKey);
+      const thumbUrl = await R2Storage.getSignedUrl(thumbKey, 86400);
       await job.updateProgress(85);
 
       await prisma.clip.update({
@@ -93,14 +93,18 @@ export function createUploadWorker() {
 
   worker.on("failed", async (job, err) => {
     if (!job) return;
-    await prisma.clip.update({
-      where: { id: job.data.clipId },
-      data: { status: "failed" },
-    });
-    await prisma.project.update({
-      where: { id: job.data.projectId },
-      data: { status: "failed", progress: 0, errorMessage: err.message },
-    });
+    try {
+      await prisma.clip.update({
+        where: { id: job.data.clipId },
+        data: { status: "failed" },
+      });
+      await prisma.project.update({
+        where: { id: job.data.projectId },
+        data: { status: "failed", progress: 0, errorMessage: err.message },
+      });
+    } catch {
+      // Project or clip may have been deleted — safe to ignore
+    }
   });
 
   return worker;

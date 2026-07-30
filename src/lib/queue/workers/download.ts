@@ -70,14 +70,18 @@ export function createDownloadWorker() {
   worker.on("failed", async (job, err) => {
     if (!job) return;
 
-    await prisma.project.update({
-      where: { id: job.data.projectId },
-      data: {
-        status: "failed",
-        progress: 0,
-        errorMessage: err.message,
-      },
-    });
+    try {
+      await prisma.project.update({
+        where: { id: job.data.projectId },
+        data: {
+          status: "failed",
+          progress: 0,
+          errorMessage: err.message,
+        },
+      });
+    } catch {
+      // Project may have been deleted — safe to ignore
+    }
   });
 
   return worker;

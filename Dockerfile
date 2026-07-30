@@ -1,14 +1,11 @@
 FROM node:22-bookworm-slim AS base
 
-# Install FFmpeg, yt-dlp, Python, and faster-whisper runtime deps.
+# Install FFmpeg and yt-dlp only
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
     ffmpeg \
-    python3 \
-    python3-pip \
     yt-dlp \
-  && python3 -m pip install --break-system-packages --no-cache-dir faster-whisper \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

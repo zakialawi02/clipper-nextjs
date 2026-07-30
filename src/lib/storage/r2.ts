@@ -29,6 +29,38 @@ export const R2Storage = {
 
   getPublicUrl(key: string): string {
     const publicUrl = process.env.R2_PUBLIC_URL;
-    return publicUrl ? `${publicUrl}/${key}` : key;
+    return publicUrl && publicUrl.startsWith("http") ? `${publicUrl}/${key}` : "";
   },
 };
+
+export async function formatClipWithSignedUrls<
+  T extends { id: string; projectId: string; thumbnailUrl: string | null; storageUrl: string | null }
+>(clip: T): Promise<T> {
+  let thumbnailUrl = clip.thumbnailUrl;
+  let storageUrl = clip.storageUrl;
+
+  const thumbKey = `projects/${clip.projectId}/clips/${clip.id}/thumb.jpg`;
+  const clipKey = `projects/${clip.projectId}/clips/${clip.id}/clip.mp4`;
+
+  if (!thumbnailUrl || thumbnailUrl.includes(".r2.dev") || !thumbnailUrl.startsWith("http")) {
+    try {
+      thumbnailUrl = await R2Storage.getSignedUrl(thumbKey, 86400);
+    } catch {
+      // Keep existing URL if signing fails
+    }
+  }
+
+  if (!storageUrl || storageUrl.includes(".r2.dev") || !storageUrl.startsWith("http")) {
+    try {
+      storageUrl = await R2Storage.getSignedUrl(clipKey, 86400);
+    } catch {
+      // Keep existing URL if signing fails
+    }
+  }
+
+  return {
+    ...clip,
+    thumbnailUrl,
+    storageUrl,
+  };
+}

@@ -20,7 +20,6 @@ import {
   Settings,
   HelpCircle,
   Clapperboard,
-  Folder,
 } from "lucide-react";
 
 const menuItems = [
@@ -58,7 +57,7 @@ export function DashboardSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/app">
+              <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <BarChart3 className="size-4" />
                 </div>

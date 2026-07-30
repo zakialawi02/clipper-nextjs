@@ -1,184 +1,244 @@
-# Next.js Authentication Starter Pack with Prisma
+# 🎬 Clipper Next.js
 
-A production-ready authentication starter template for Next.js 16 App Router with Prisma ORM, PostgreSQL, and NextAuth.js. Preconfigured with Discord, GitHub, and Google OAuth providers.
+An AI-powered video clipping & short-form content generation platform built with **Next.js 16**, **TypeScript**, **Prisma**, **BullMQ**, **faster-whisper**, and **FFmpeg**. 
 
-## Features
+Clipper automatically ingests YouTube videos, transcribes audio with precise timestamps, uses LLMs to extract viral highlight clips with hooks and scores, renders vertical/short-form videos, and uploads them to cloud storage.
 
-- 🔐 Full authentication system with NextAuth.js
-- 🗄️ PostgreSQL database integration with Prisma ORM
-- 🚀 Next.js 16+ App Router with Server Components
-- 🎨 Tailwind CSS for styling
-- 🌙 Dark mode support
-- 📱 Responsive UI components
-- 🔒 Secure environment variable validation
-- 🧠 TypeScript support
-- 🛡️ Protected routes with middleware
-- 🔄 Session management
-- 📦 Ready-to-use UI components
+---
 
-## Tech Stack
+## ⚡ Features
 
-- [Next.js 16+](https://nextjs.org/) - React framework
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [NextAuth.js](https://next-auth.js.org/) - Authentication solution
-- [Prisma](https://www.prisma.io/) - Database ORM
-- [PostgreSQL](https://www.postgresql.org/) - Database
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [Shadcn/ui](https://ui.shadcn.com/) - UI components
-- [Lucide Icons](https://lucide.dev/) - Icon library
+- 📺 **YouTube Integration**: Direct video/audio ingestion powered by `yt-dlp`.
+- 🗣️ **High-Performance Transcription**: Local timestamped speech-to-text using `faster-whisper` (Python).
+- 🧠 **AI Highlight Extraction**: AI-powered analysis via OpenAI-compatible APIs (`gpt-4o-mini`, etc.) to discover viral hooks, clip scores, and platform targets (TikTok, YouTube Shorts, Reels).
+- ✂️ **Automated Video Clipping**: Smart video cropping and trimming using `FFmpeg`.
+- 🔄 **Distributed Task Queue**: Scalable background pipeline powered by `BullMQ` & `Redis`.
+- ☁️ **Cloud Media Storage**: S3-compatible object storage integration via Cloudflare R2.
+- 🔐 **Multi-Provider Authentication**: NextAuth.js v4 supporting Google, GitHub, Discord, and Credentials.
+- 💳 **Subscriptions & Credits**: Integrated credit system and subscription management powered by Polar.sh.
+- 🎨 **Modern Design & UI**: Dynamic dark mode interface built with React 19, Tailwind CSS v4, Motion (Framer Motion), and Shadcn UI components.
+- 🐳 **Dockerized Stack**: Fully containerized environment with Docker Compose (PostgreSQL, Redis, Worker, Adminer, Redis Commander).
 
-## Prerequisites
+---
 
-- Node.js 18+
-- PostgreSQL database
-- OAuth credentials for providers you want to use (Discord, GitHub, Google)
+## 🏗️ Architecture & Pipeline
 
-## Getting Started
+```mermaid
+flowchart TD
+    User([User]) -->|Submit YouTube URL| App[Next.js App Router]
+    App -->|Create Project & Enqueue Job| DB[(PostgreSQL / Prisma)]
+    App -->|Push Task| Redis[(Redis / BullMQ)]
+    
+    subgraph Worker ["Background Worker (src/worker.ts)"]
+        DL[1. Download Worker\nyt-dlp] --> TR[2. Transcribe Worker\nfaster-whisper]
+        TR --> AN[3. Analyze Worker\nOpenAI / LLM API]
+        AN --> RN[4. Render Worker\nFFmpeg]
+        RN --> UP[5. Upload Worker\nCloudflare R2]
+    end
 
-1. Clone the repository:
+    Redis --> Worker
+    Worker -->|Update Status & Clips| DB
+    Worker -->|Store Media Assets| R2[(Cloudflare R2)]
+    User -->|View & Download Clips| App
+```
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack) & [React 19](https://react.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) & [Python 3](https://www.python.org/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/), [Motion](https://motion.dev/), [Shadcn UI](https://ui.shadcn.com/)
+- **State & Data Fetching**: [Zustand](https://zustand-demo.pmnd.rs/), [TanStack React Query](https://tanstack.com/query)
+- **Database & ORM**: [PostgreSQL](https://www.postgresql.org/) & [Prisma ORM 6](https://www.prisma.io/)
+- **Background Worker & Queue**: [BullMQ](https://docs.bullmq.io/) & [Redis](https://redis.io/)
+- **Media & Processing**: `FFmpeg`, `yt-dlp`, `faster-whisper`
+- **Authentication**: [NextAuth.js v4](https://next-auth.js.org/)
+- **Payments & Subscriptions**: [Polar.sh](https://polar.sh/)
+- **Object Storage**: [Cloudflare R2](https://www.cloudflare.com/developer-platform/r2/) / AWS S3 SDK
+- **Observability**: [Sentry](https://sentry.io/)
+
+---
+
+## 📋 Prerequisites
+
+### Using Docker (Recommended)
+- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/)
+
+### Local Manual Setup
+- Node.js 20+
+- PostgreSQL 16+
+- Redis 7+
+- Python 3 with `faster-whisper` installed (`pip install faster-whisper`)
+- `ffmpeg` & `yt-dlp` installed in system PATH
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone & Install
 
 ```bash
 git clone <repository-url>
-cd starterpack-nextjs-auth-prisma
-```
-
-2. Install dependencies:
-
-```bash
+cd clipper-nextjs
 npm install
 ```
 
-3. Create a `.env` file based on `.env.example`:
+### 2. Configure Environment Variables
+
+Copy `.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-4. Configure your environment variables in `.env`:
+Fill in required credentials in `.env`:
 
-- `DATABASE_URL`: Your PostgreSQL connection string
-- `AUTH_SECRET`: Secret for NextAuth.js (generate with `openssl rand -base64 32` or run script `npm run generate:auth`)
-- OAuth provider credentials (at least one):
-  - `AUTH_DISCORD_ID` and `AUTH_DISCORD_SECRET`
-  - `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET`
-  - `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`
+```env
+# Database & Redis
+DATABASE_URL="postgresql://clipper_user:clipper_pass@localhost:5433/clipper_db"
+REDIS_URL="redis://localhost:6379"
+BULLMQ_REDIS_URL="redis://localhost:6380"
 
-5. Generate Prisma client:
+# Authentication
+AUTH_SECRET="your-generated-auth-secret"
+
+# AI Model Configuration
+AI_PROVIDER="openai"
+AI_MODEL="gpt-4o-mini"
+AI_BASE_URL="https://api.openai.com/v1"
+AI_API_KEY="sk-..."
+
+# Cloudflare R2 Storage
+R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
+R2_ACCESS_KEY_ID="your-access-key-id"
+R2_SECRET_ACCESS_KEY="your-secret-access-key"
+R2_BUCKET_NAME="clipper"
+R2_PUBLIC_URL="https://pub-<id>.r2.dev"
+```
+
+> **Tip:** You can generate a secure `AUTH_SECRET` by running:
+> ```bash
+> npm run generate:auth
+> ```
+
+---
+
+## 🐳 Running with Docker Compose
+
+The easiest way to start all services (PostgreSQL, Redis, BullMQ Redis, Worker) is via Docker Compose:
 
 ```bash
+# Start PostgreSQL, Redis, and the background worker
+docker compose up -d
+
+# Generate Prisma Client & Run Database Migrations
 npx prisma generate
-```
-
-6. Set up the database:
-
-```bash
 npm run db:migrate
-```
 
-7. Run the development server:
-
-```bash
+# Start Next.js Development Server locally
 npm run dev
 ```
 
-8. Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Management Tools (Optional)
 
-## Available Scripts
-
-- `npm run generate:auth` - Generate authentication key
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run check` - Run linting and type checking
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:migrate` - Apply database migrations
-- `npm run db:push` - Push schema changes to database
-- `npm run db:studio` - Open Prisma Studio
-- `npm run format:check` - Check code formatting
-- `npm run format:write` - Format code
-- `npm run typecheck` - Run TypeScript type checking
-
-## Project Structure
-
-```
-src/
-├── app/                 # Next.js app router pages
-│   ├── (admin)/         # Admin/dashboard routes (protected)
-│   ├── (public)/        # Public routes
-│   ├── api/auth/        # NextAuth.js API routes
-├── components/          # React components
-├── lib/                 # Utility libraries
-├── types/               # TypeScript types
-├── env.ts              # Environment variable validation
-```
-
-## Authentication Providers
-
-This starter pack comes preconfigured with three OAuth providers:
-
-1. Discord
-2. GitHub
-3. Google
-
-To enable a provider, simply add the corresponding environment variables. At least one provider must be configured for authentication to work.
-
-## Database Schema
-
-The project uses Prisma with a PostgreSQL database. The schema includes:
-
-- User model
-- Account model
-- Session model
-- VerificationToken model
-
-These models are based on the default NextAuth.js schema and are automatically managed by the Prisma adapter.
-
-## UI Components
-
-The project includes several pre-built UI components from Shadcn/ui:
-
-- Buttons
-- Cards
-- Dropdown menus
-- Inputs
-- Avatars
-- And more
-
-All components are styled with Tailwind CSS and support dark mode.
-
-## Deployment
-
-1. Set up your production database
-2. Configure all environment variables
-3. Build the application:
+Run with the `--profile tools` flag to enable web administration dashboards:
 
 ```bash
-npm run build
+docker compose --profile tools up -d
+```
+- **Adminer (Database GUI)**: [http://localhost:8080](http://localhost:8080)
+- **Redis Commander**: [http://localhost:8081](http://localhost:8081)
+
+---
+
+## 💻 Local Development Workflow
+
+When developing locally without Docker worker containers:
+
+1. **Start Database & Caches**:
+   ```bash
+   docker compose up postgres redis bullmq-redis -d
+   ```
+2. **Apply Database Migrations**:
+   ```bash
+   npm run db:migrate
+   ```
+3. **Start the Background Worker**:
+   ```bash
+   npm run worker
+   ```
+4. **Start the Web App**:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📜 Available Scripts
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Starts the Next.js development server with Turbopack |
+| `npm run worker` | Starts the BullMQ multi-step processing worker |
+| `npm run build` | Builds the production application bundle |
+| `npm run start` | Runs the production server |
+| `npm run preview` | Builds and starts the production app locally |
+| `npm run generate:auth` | Generates a new `AUTH_SECRET` for NextAuth |
+| `npm run check` | Runs ESLint and TypeScript checks |
+| `npm run typecheck` | Validates TypeScript types |
+| `npm run lint` | Runs ESLint |
+| `npm run db:generate` | Generates Prisma client & runs dev migrations |
+| `npm run db:migrate` | Applies production database migrations |
+| `npm run db:push` | Pushes Prisma schema changes directly to DB |
+| `npm run db:studio` | Opens Prisma Studio GUI |
+| `npm run format:write` | Formats code with Prettier |
+
+### Pipeline Debug Scripts
+
+- `npx tsx scripts/test-pipeline.ts` - Test the full clipping job execution pipeline.
+- `npx tsx scripts/check-status.ts` - Inspect job progress and statuses in Redis/DB.
+- `npx tsx scripts/retry-pipeline.ts` - Retry failed queue jobs.
+
+---
+
+## 📁 Project Structure
+
+```
+clipper-nextjs/
+├── prisma/               # Database schema & migrations
+├── public/               # Static assets
+├── scripts/              # Pipeline testing & utility scripts
+├── src/
+│   ├── app/              # Next.js App Router (auth, dashboard, public, API routes)
+│   ├── components/       # UI components (Shadcn, custom widgets)
+│   ├── env.ts            # T3 Env Zod validation
+│   ├── features/         # Feature modules (projects, clips, etc.)
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/
+│   │   ├── ai/           # LLM highlight extraction prompts & client
+│   │   ├── auth.ts       # NextAuth.js configuration
+│   │   ├── prisma.ts     # Prisma client instance
+│   │   ├── queue/        # BullMQ queue definitions & worker step handlers
+│   │   ├── storage/      # Cloudflare R2 / S3 client
+│   │   └── utils/        # FFmpeg, yt-dlp, faster-whisper integration
+│   ├── types/            # TypeScript definitions
+│   └── worker.ts         # Standalone processing worker entrypoint
+├── Dockerfile            # Container definition for worker & app
+└── docker-compose.yml    # Full service orchestration
 ```
 
-4. Start the production server:
+---
 
-```bash
-npm start
-```
+## ☕ Support & Contributions
 
-## Learn More
+If you find Clipper Next.js useful, feel free to star the repository or support development:
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [NextAuth.js Documentation](https://next-auth.js.org/getting-started/introduction)
-- [Prisma Documentation](https://www.prisma.io/docs/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-ff5e5b?logo=ko-fi)](https://ko-fi.com/zakialawi)
 
-## Support and Donations
+---
 
-If you find this project useful and would like to support its further
-development, you can make a donation via the following platforms:
+## 📄 License
 
-https://ko-fi.com/zakialawi
+This project is licensed under the [MIT License](LICENSE).
 
-Every contribution you make is greatly appreciated. Thank you!
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

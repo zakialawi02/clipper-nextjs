@@ -73,14 +73,18 @@ export function createRenderWorker() {
 
   worker.on("failed", async (job, err) => {
     if (!job) return;
-    await prisma.clip.update({
-      where: { id: job.data.clipId },
-      data: { status: "failed" },
-    });
-    await prisma.project.update({
-      where: { id: job.data.projectId },
-      data: { status: "failed", progress: 0, errorMessage: err.message },
-    });
+    try {
+      await prisma.clip.update({
+        where: { id: job.data.clipId },
+        data: { status: "failed" },
+      });
+      await prisma.project.update({
+        where: { id: job.data.projectId },
+        data: { status: "failed", progress: 0, errorMessage: err.message },
+      });
+    } catch {
+      // Project or clip may have been deleted — safe to ignore
+    }
   });
 
   return worker;
