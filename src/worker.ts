@@ -1,30 +1,37 @@
-import { Worker } from "bullmq";
-import { env } from "./env";
-import ffmpeg from "fluent-ffmpeg";
+import "./env";
+import pino from "pino";
+import { createDownloadWorker } from "@/lib/queue/workers/download";
+import { createTranscribeWorker } from "@/lib/queue/workers/transcribe";
+import { connection } from "@/lib/queue/connection";
 
-console.log("Worker starting...");
+const logger = pino({ level: "info", name: "clipper-worker" });
 
-const worker = new Worker(
-  "video-clipping",
-  async (job) => {
-    console.log(`Processing job ${job.id}: ${job.name}`);
-    
-    // Example FFmpeg task
-    // ffmpeg(job.data.inputPath).output(job.data.outputPath).run();
+async function main() {
+  logger.info("Starting AI Clipper workers...");
 
-    return { status: "completed" };
-  },
-  {
-    connection: {
-      url: env.BULLMQ_REDIS_URL,
-    },
-  }
-);
+  const downloadWorker = createDownloadWorker();
+  const transcribeWorker = createTranscribeWorker();
 
-worker.on("completed", (job) => {
-  console.log(`Job ${job.id} completed!`);
-});
+  logger.info("Workers started: download, transcribe");
 
-worker.on("failed", (job, err) => {
-  console.log(`Job ${job?.id} failed with error: ${err.message}`);
+  const shutdown = async () => {
+    logger.info("Shutting down workers...");
+
+    await Promise.all([
+      downloadWorker.close(),
+      transcribeWorker.close(),
+      connection.quit(),
+    ]);
+
+    logger.info("Workers shut down cleanly");
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
+}
+
+main().catch((err) => {
+  logger.error(err, "Worker failed to start");
+  process.exit(1);
 });
